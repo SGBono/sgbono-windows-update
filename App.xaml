@@ -2,8 +2,17 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:sgbono_windows_update"
-             StartupUri="MainWindow.xaml">
+             StartupUri="MainWindow.xaml"
+             xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemeResources />
+                <ui:XamlControlsResources />
+            </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="SegoeUIVariable">
+                <Setter Property="TextElement.FontFamily" Value="pack://application:,,,/Fonts/#Segoe UI Variable Display"/>
+            </Style>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
