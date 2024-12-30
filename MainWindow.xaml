@@ -21,7 +21,7 @@
             </StackPanel>
             <StackPanel Margin="0,0,0,20">
                 <!--<Label Content="This computer is running Windows 11 Home. Update this one manually." FontFamily="Segoe UI Variable Display" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,5" Foreground="#FFF000"/>-->
-                <Label Content="Start Here" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,5" FontSize="20" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display"/>
+                <!--<Label Content="Start Here" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,5" FontSize="20" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display"/>-->
                 <StackPanel Orientation="Horizontal" Margin="40,0,0,5">
                     <Button x:Name="connectButton" Content="Connect" Style="{DynamicResource AccentButtonStyle}" Margin="0,0,10,0" Click="connectButton_Click"/>
                     <Button x:Name="disconnectButton" Content="Disconnect" IsEnabled="False"/>
@@ -29,7 +29,7 @@
                 <StackPanel Orientation="Horizontal" Margin="40,0,0,5">
                     <Label Content="Status: " FontSize="16"/>
                     <Label x:Name="statusText" Content="Using Windows Update servers" Foreground="Red" FontSize="16"/>
-                    <ui:ProgressRing Height="20" Width="20" Margin="10,0,0,0" IsActive="False"/>
+                    <ui:ProgressRing x:Name="progressRing" Height="20" Width="20" Margin="10,0,0,0" IsActive="False"/>
                 </StackPanel>
             </StackPanel>
             <StackPanel>
