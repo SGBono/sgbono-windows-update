@@ -7,7 +7,6 @@
         xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
         ui:WindowHelper.UseModernWindowStyle="True"
         ui:TitleBar.IsIconVisible="True"
-        ui:ThemeManager.RequestedTheme="Default"
         ui:WindowHelper.SystemBackdropType="Mica"
         mc:Ignorable="d"
         Title="OS Update" Height="500" Width="700" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen">
@@ -23,8 +22,8 @@
                 <!--<Label Content="This computer is running Windows 11 Home. Update this one manually." FontFamily="Segoe UI Variable Display" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,5" Foreground="#FFF000"/>-->
                 <!--<Label Content="Start Here" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,5" FontSize="20" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display"/>-->
                 <StackPanel Orientation="Horizontal" Margin="40,0,0,5">
-                    <Button x:Name="connectButton" Content="Connect" Style="{DynamicResource AccentButtonStyle}" Margin="0,0,10,0" Click="connectButton_Click"/>
-                    <Button x:Name="disconnectButton" Content="Disconnect" IsEnabled="False" Click="disconnectButton_Click"/>
+                    <Button x:Name="connectButton" Content="Connect" Style="{DynamicResource AccentButtonStyle}" Width="100" Height="35" Margin="0,0,10,0" Click="connectButton_Click"/>
+                    <Button x:Name="disconnectButton" Content="Disconnect" Width="100" Height="35" IsEnabled="False" Click="disconnectButton_Click"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="40,0,0,5">
                     <Label Content="Status: " FontSize="16"/>
@@ -33,8 +32,9 @@
                 </StackPanel>
             </StackPanel>
             <StackPanel>
-                <Label Content="Windows 7/8.1 Options" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,5" FontSize="20" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display"/>
-                <ui:ToggleSwitch x:Name="win10UpgradeCheckbox" Header="Enable upgrade to Windows 10" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,0" IsEnabled="False" Toggled="win10UpgradeCheckbox_Toggled"/>
+                <Label Content="Options" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,5" FontSize="20" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display"/>
+                <ui:ToggleSwitch x:Name="win10UpgradeCheckbox" Header="Enable upgrade to Windows 10 (Windows 7 or 8.1 only)" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,10" IsEnabled="False" Toggled="win10UpgradeCheckbox_Toggled"/>
+                <ui:ToggleSwitch x:Name="alwaysOnTopCheckbox" Header="Always on top" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,0" IsEnabled="True" IsOn="True" Toggled="alwaysOnTopCheckbox_Toggled"/>
             </StackPanel>
         </StackPanel>
         <Label x:Name="operatingSystemLabel" Content="OS: Windows 11 Pro" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="40,0,0,20" FontSize="16" FontFamily="Segoe UI Variable Display"/>

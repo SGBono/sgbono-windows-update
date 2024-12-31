@@ -4,9 +4,44 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:sgbono_windows_update"
+        xmlns:ui="http://schemas.inkore.net/lib/ui/wpf/modern"
+        ui:WindowHelper.UseModernWindowStyle="True"
+        ui:TitleBar.IsIconVisible="True"
+        ui:WindowHelper.SystemBackdropType="Mica"
         mc:Ignorable="d"
-        Title="WarningWindow" Height="450" Width="800">
+        Title="Warning" Height="590" Width="800" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
-        
+        <StackPanel>
+            <ui:InfoBar Title="Please acknowledge the following before you continue." Severity="Error" IsOpen="True" IsClosable="False" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,10,0,0"/>
+            <Label Content="WARNING: RISK OF DAMAGE IF NOT FOLLOWED" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold" FontSize="26" FontFamily="Segoe UI Variable Display" Margin="40,15,0,10"/>
+
+            <TextBlock TextWrapping="WrapWithOverflow" FontSize="18" Width="720" Margin="40,0,40,0">
+                <TextBlock.Inlines>
+                    <Run Text="Configuring computers to pull updates from internal Windows Server Update Services (WSUS) servers like we are doing now will prevent said computers from automatically
+contacting Microsoft's Windows Update servers for future updates."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run FontWeight="Bold" Text="In other words, that means, if left as is, these computers will no longer be able to update on their own once they leave our hands."/>
+                    <LineBreak/>
+                    <LineBreak/>
+                    <Run Text="Therefore, it is of"/>
+                    <Run FontWeight="Bold" Text="UTMOST"/>
+                    <Run Text="importance that you remember disconnect these computers from the WSUS server before they are handed over to the end user to ensure that they can still update on their own. You can do so by clicking the"/>
+                    <Run FontWeight="Bold" Text="Disconnect"/>
+                    <Run Text="button found in the previous screen."/>
+                </TextBlock.Inlines>
+            </TextBlock>
+            <CheckBox x:Name="termsCheckbox" Content="I promise to disconnect from the WSUS server when done. I will not give the QC team additional headaches." HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,20,0,10" Click="termsCheckbox_Click">
+                <CheckBox.LayoutTransform>
+                    <ScaleTransform ScaleX="1.05" ScaleY="1.05"/>
+                </CheckBox.LayoutTransform>
+            </CheckBox>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button x:Name="submitButton" Content="Submit" Style="{DynamicResource AccentButtonStyle}" Width="100" Height="35" Margin="0,0,10,0" IsEnabled="False" Click="SubmitCancelClick"/>
+                <Button x:Name="cancelButton" Content="Cancel" Width="100" Height="35" Click="SubmitCancelClick"/>
+            </StackPanel>
+        </StackPanel>
+        <Label FontSize="13" Content="¹Before you say 'I ain't reading allat', note that you will be personally held responsible if I see this happening." HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,0,0,30"/>
+        <Label FontSize="13" Content="²If the computer restarts to finish an update, you can relaunch this app and disconnect the same way." HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="20,0,0,10"/>
     </Grid>
 </Window>

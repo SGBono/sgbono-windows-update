@@ -10,6 +10,8 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
 	<LangVersion>10</LangVersion>
 	<ApplicationManifest>app.manifest</ApplicationManifest>
+	<ApplicationIcon>windows-update-icon-9-1671344843.ico</ApplicationIcon>
+	<AssemblyName>GWXI</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -19,6 +21,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <PreferNativeArm64>True</PreferNativeArm64>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="windows-update-icon-9-1671344843.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="iNKORE.UI.WPF.Modern" Version="0.9.30" />

@@ -19,9 +19,21 @@ namespace sgbono_windows_update
     /// </summary>
     public partial class WarningWindow : Window
     {
+
         public WarningWindow()
         {
             InitializeComponent();
+            this.Topmost = true;
+        }
+
+        private void termsCheckbox_Click(object sender, RoutedEventArgs e)
+        {
+            submitButton.IsEnabled = termsCheckbox.IsChecked ?? false;
+        }
+
+        private void SubmitCancelClick(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }

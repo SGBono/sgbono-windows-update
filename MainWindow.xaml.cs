@@ -29,6 +29,7 @@ namespace sgbono_windows_update
         public MainWindow()
         {
             InitializeComponent();
+            this.Topmost = true;
             iNKORE.UI.WPF.Modern.ThemeManager.Current.ApplicationTheme = iNKORE.UI.WPF.Modern.ApplicationTheme.Dark;
 
             // Check for Windows 10 and 11 Home - unsupported OSes
@@ -80,51 +81,76 @@ namespace sgbono_windows_update
             }
         }
 
-        private void connectButton_Click(object sender, RoutedEventArgs e)
+        private async void connectButton_Click(object sender, RoutedEventArgs e)
         {
+            // Update UI
             progressRing.IsActive = true;
             statusText.Content = "Connecting";
             statusText.Foreground = Brushes.Gray;
             connectButton.IsEnabled = false;
             connectButton.SetResourceReference(StyleProperty, "DefaultButtonStyle");
 
-            updatePoliciesKey.SetValue("WUServer", Settings.FQDN);
-            updatePoliciesKey.SetValue("WUStatusServer", Settings.FQDN);
-            updatePoliciesKey.SetValue("DoNotConnectToWindowsUpdateInternetLocations", 1);
-            updatePoliciesKey.CreateSubKey("AU", true).SetValue("UseWUServer", 1);
-            updatePoliciesKey.CreateSubKey("AU", true).SetValue("AUOptions", 4);
-            updatePoliciesKey.Flush();
+            await Task.Delay(500);
 
-            ProcessStartInfo openWindowsUpdatePage = new ProcessStartInfo()
-            {
-                FileName = "control.exe",
-                Arguments = "update"
-            };
-            Process.Start(openWindowsUpdatePage);
+            // Show warning window
+            WarningWindow warningWindow = new WarningWindow();
+            warningWindow.ShowDialog();
 
-            ProcessStartInfo checkForUpdates = new ProcessStartInfo();
-            if (operatingSystemLabel.Content.ToString().Contains("Windows 10") || operatingSystemLabel.Content.ToString().Contains("Windows 11"))
+            if (warningWindow.termsCheckbox.IsChecked ?? false == true)
             {
-                checkForUpdates.FileName = "UsoClient.exe";
-                checkForUpdates.Arguments = "StartInteractiveScan";
+                // Registry changes needed to make this work
+                updatePoliciesKey.SetValue("WUServer", Settings.FQDN);
+                updatePoliciesKey.SetValue("WUStatusServer", Settings.FQDN);
+                updatePoliciesKey.SetValue("DoNotConnectToWindowsUpdateInternetLocations", 1);
+                updatePoliciesKey.CreateSubKey("AU", true).SetValue("UseWUServer", 1);
+                updatePoliciesKey.CreateSubKey("AU", true).SetValue("AUOptions", 4);
+                updatePoliciesKey.Flush();
+
+                // Launch Windows Update page on UWP Settings/Control Panel
+                ProcessStartInfo openWindowsUpdatePage = new ProcessStartInfo()
+                {
+                    FileName = "control.exe",
+                    Arguments = "update"
+                };
+                Process.Start(openWindowsUpdatePage);
+
+                // Tell Windows Update to check for updates now
+                ProcessStartInfo checkForUpdates = new ProcessStartInfo();
+                if (operatingSystemLabel.Content.ToString().Contains("Windows 10") || operatingSystemLabel.Content.ToString().Contains("Windows 11"))
+                {
+                    checkForUpdates.FileName = "UsoClient.exe";
+                    checkForUpdates.Arguments = "StartInteractiveScan";
+                }
+                else
+                {
+                    checkForUpdates.FileName = "wuauclt.exe";
+                    checkForUpdates.Arguments = "/resetauthorization /detectnow /updatenow /reportnow";
+                    win10UpgradeCheckbox.IsEnabled = true;
+                }
+                Process.Start(checkForUpdates).WaitForExit();
+
+                // Update UI
+                disconnectButton.IsEnabled = true;
+                disconnectButton.SetResourceReference(StyleProperty, "AccentButtonStyle");
+                statusText.Content = "Using SGBono WSUS server";
+                statusText.Foreground = Brushes.LightGreen;
+                reminderWarning.Visibility = Visibility.Visible;
             } else
             {
-                checkForUpdates.FileName = "wuauclt.exe";
-                checkForUpdates.Arguments = "/resetauthorization /detectnow /updatenow /reportnow";
-                win10UpgradeCheckbox.IsEnabled = true;
+                // Revert UI
+                connectButton.IsEnabled = true;
+                connectButton.SetResourceReference(StyleProperty, "AccentButtonStyle");
+                statusText.Content = "Using Windows Update servers";
+                statusText.Foreground = Brushes.Red;
             }
-            Process.Start(checkForUpdates).WaitForExit();
 
-            disconnectButton.IsEnabled = true;
-            disconnectButton.SetResourceReference(StyleProperty, "AccentButtonStyle");
-            statusText.Content = "Using SGBono WSUS server";
-            statusText.Foreground = Brushes.LightGreen;
-            reminderWarning.Visibility = Visibility.Visible;
+            // Update UI
             progressRing.IsActive = false;
         }
 
         private void disconnectButton_Click(object sender, RoutedEventArgs e)
         {
+            // Update UI
             progressRing.IsActive = true;
             statusText.Content = "Disconnecting";
             statusText.Foreground = Brushes.Gray;
@@ -132,12 +158,14 @@ namespace sgbono_windows_update
             disconnectButton.IsEnabled = false;
             disconnectButton.SetResourceReference(StyleProperty, "DefaultButtonStyle");
 
+            // Registry changes needed to make this work
             updatePoliciesKey.DeleteSubKeyTree("AU");
             foreach (var key in updatePoliciesKey.GetValueNames())
             {
                 updatePoliciesKey.DeleteValue(key);
             }
 
+            // Update UI
             connectButton.IsEnabled = true;
             connectButton.SetResourceReference(StyleProperty, "AccentButtonStyle");
             statusText.Content = "Using Windows Update servers";
@@ -156,6 +184,11 @@ namespace sgbono_windows_update
             {
                 osUpgrade.DeleteValue("AllowOSUpgrade");
             }
+        }
+
+        private void alwaysOnTopCheckbox_Toggled(object sender, RoutedEventArgs e)
+        {
+            this.Topmost = alwaysOnTopCheckbox.IsOn;
         }
     }
 }
