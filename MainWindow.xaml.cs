@@ -16,6 +16,7 @@ namespace sgbono_windows_update
     {
         private static XDocument settings = XDocument.Load(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + @"\Settings.xml");
         private RegistryKey updatePoliciesKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate", true);
+        private RegistryKey osUpgrade = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\OSUpgrade", true);
 
         private class Settings
         {
@@ -58,6 +59,7 @@ namespace sgbono_windows_update
                     } else
                     {
                         win10UpgradeCheckbox.IsEnabled = true;
+                        win10UpgradeCheckbox.IsOn = Convert.ToBoolean(osUpgrade.GetValue("AllowOSUpgrade"));
                     }
 
                     operatingSystemLabel.Content = $"OS: {value.Replace("Microsoft", "")}";
@@ -89,7 +91,29 @@ namespace sgbono_windows_update
             updatePoliciesKey.SetValue("WUServer", Settings.FQDN);
             updatePoliciesKey.SetValue("WUStatusServer", Settings.FQDN);
             updatePoliciesKey.SetValue("DoNotConnectToWindowsUpdateInternetLocations", 1);
-            updatePoliciesKey.CreateSubKey("AU").SetValue("UseWUServer", 1);
+            updatePoliciesKey.CreateSubKey("AU", true).SetValue("UseWUServer", 1);
+            updatePoliciesKey.CreateSubKey("AU", true).SetValue("AUOptions", 4);
+            updatePoliciesKey.Flush();
+
+            ProcessStartInfo openWindowsUpdatePage = new ProcessStartInfo()
+            {
+                FileName = "control.exe",
+                Arguments = "update"
+            };
+            Process.Start(openWindowsUpdatePage);
+
+            ProcessStartInfo checkForUpdates = new ProcessStartInfo();
+            if (operatingSystemLabel.Content.ToString().Contains("Windows 10") || operatingSystemLabel.Content.ToString().Contains("Windows 11"))
+            {
+                checkForUpdates.FileName = "UsoClient.exe";
+                checkForUpdates.Arguments = "StartInteractiveScan";
+            } else
+            {
+                checkForUpdates.FileName = "wuauclt.exe";
+                checkForUpdates.Arguments = "/resetauthorization /detectnow /updatenow /reportnow";
+                win10UpgradeCheckbox.IsEnabled = true;
+            }
+            Process.Start(checkForUpdates).WaitForExit();
 
             disconnectButton.IsEnabled = true;
             disconnectButton.SetResourceReference(StyleProperty, "AccentButtonStyle");
@@ -97,6 +121,41 @@ namespace sgbono_windows_update
             statusText.Foreground = Brushes.LightGreen;
             reminderWarning.Visibility = Visibility.Visible;
             progressRing.IsActive = false;
+        }
+
+        private void disconnectButton_Click(object sender, RoutedEventArgs e)
+        {
+            progressRing.IsActive = true;
+            statusText.Content = "Disconnecting";
+            statusText.Foreground = Brushes.Gray;
+            win10UpgradeCheckbox.IsEnabled = false;
+            disconnectButton.IsEnabled = false;
+            disconnectButton.SetResourceReference(StyleProperty, "DefaultButtonStyle");
+
+            updatePoliciesKey.DeleteSubKeyTree("AU");
+            foreach (var key in updatePoliciesKey.GetValueNames())
+            {
+                updatePoliciesKey.DeleteValue(key);
+            }
+
+            connectButton.IsEnabled = true;
+            connectButton.SetResourceReference(StyleProperty, "AccentButtonStyle");
+            statusText.Content = "Using Windows Update servers";
+            statusText.Foreground = Brushes.Red;
+            reminderWarning.Visibility = Visibility.Collapsed;
+            progressRing.IsActive = false;
+        }
+
+        private void win10UpgradeCheckbox_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (win10UpgradeCheckbox.IsOn)
+            {
+                osUpgrade.SetValue("AllowOSUpgrade", 1);
+            }
+            else
+            {
+                osUpgrade.DeleteValue("AllowOSUpgrade");
+            }
         }
     }
 }

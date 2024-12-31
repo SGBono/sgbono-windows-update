@@ -24,7 +24,7 @@
                 <!--<Label Content="Start Here" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,5" FontSize="20" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display"/>-->
                 <StackPanel Orientation="Horizontal" Margin="40,0,0,5">
                     <Button x:Name="connectButton" Content="Connect" Style="{DynamicResource AccentButtonStyle}" Margin="0,0,10,0" Click="connectButton_Click"/>
-                    <Button x:Name="disconnectButton" Content="Disconnect" IsEnabled="False"/>
+                    <Button x:Name="disconnectButton" Content="Disconnect" IsEnabled="False" Click="disconnectButton_Click"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="40,0,0,5">
                     <Label Content="Status: " FontSize="16"/>
@@ -34,7 +34,7 @@
             </StackPanel>
             <StackPanel>
                 <Label Content="Windows 7/8.1 Options" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,5" FontSize="20" FontWeight="SemiBold" FontFamily="Segoe UI Variable Display"/>
-                <CheckBox x:Name="win10UpgradeCheckbox" Content="Enable upgrade to Windows 10" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,0" IsEnabled="False"/>
+                <ui:ToggleSwitch x:Name="win10UpgradeCheckbox" Header="Enable upgrade to Windows 10" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="40,0,0,0" IsEnabled="False" Toggled="win10UpgradeCheckbox_Toggled"/>
             </StackPanel>
         </StackPanel>
         <Label x:Name="operatingSystemLabel" Content="OS: Windows 11 Pro" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="40,0,0,20" FontSize="16" FontFamily="Segoe UI Variable Display"/>
