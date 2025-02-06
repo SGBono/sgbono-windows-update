@@ -106,6 +106,9 @@ namespace sgbono_windows_update
                 updatePoliciesKey.CreateSubKey("AU", true).SetValue("AUOptions", 4);
                 updatePoliciesKey.Flush();
 
+                // Restart Windows Update service
+                RestartUpdateService();
+
                 // Launch Windows Update page on UWP Settings/Control Panel
                 ProcessStartInfo openWindowsUpdatePage = new ProcessStartInfo()
                 {
@@ -165,6 +168,9 @@ namespace sgbono_windows_update
                 updatePoliciesKey.DeleteValue(key);
             }
 
+            // Restart Windows Update service
+            RestartUpdateService();
+
             // Update UI
             connectButton.IsEnabled = true;
             connectButton.SetResourceReference(StyleProperty, "AccentButtonStyle");
@@ -172,6 +178,27 @@ namespace sgbono_windows_update
             statusText.Foreground = Brushes.Red;
             reminderWarning.Visibility = Visibility.Collapsed;
             progressRing.IsActive = false;
+        }
+
+        private void RestartUpdateService()
+        {
+            ProcessStartInfo stopWuauserv = new ProcessStartInfo()
+            {
+                FileName = "net.exe",
+                Arguments = "stop wuauserv",
+                WindowStyle = ProcessWindowStyle.Hidden,
+                CreateNoWindow = true
+            };
+            Process.Start(stopWuauserv).WaitForExit();
+
+            ProcessStartInfo startWuauserv = new ProcessStartInfo()
+            {
+                FileName = "net.exe",
+                Arguments = "start wuauserv",
+                WindowStyle = ProcessWindowStyle.Hidden,
+                CreateNoWindow = true
+            };
+            Process.Start(startWuauserv).WaitForExit();
         }
 
         private void win10UpgradeCheckbox_Toggled(object sender, RoutedEventArgs e)
