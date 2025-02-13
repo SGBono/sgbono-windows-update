@@ -23,11 +23,35 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="WiFiTemplate.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="windows-update-icon-9-1671344843.ico" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="iNKORE.UI.WPF.Modern" Version="0.9.30" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="WiFiTemplate.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace></CustomToolNamespace>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

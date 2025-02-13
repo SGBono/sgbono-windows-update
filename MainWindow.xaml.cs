@@ -1,6 +1,9 @@
-﻿using Microsoft.Win32;
+﻿using iNKORE.UI.WPF.Modern.Controls;
+using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,6 +27,10 @@ namespace sgbono_windows_update
             public readonly static int Port = Convert.ToInt32(settings.Root.Element("WSUSPort").Value);
             public readonly static string Protocol = settings.Root.Element("WSUSUseSSL").Value == "True" ? "https" : "http";
             public readonly static string FQDN = $"{Protocol}://{ServerName}:{Port}";
+
+            public readonly static string SSID = settings.Root.Element("Router").Element("SSID").Value;
+            public readonly static string Password = settings.Root.Element("Router").Element("Password").Value;
+            public readonly static string SecurityProtocol = settings.Root.Element("Router").Element("SecurityProtocol").Value;
         }
 
         public MainWindow()
@@ -98,6 +105,8 @@ namespace sgbono_windows_update
 
             if (warningWindow.termsCheckbox.IsChecked ?? false == true)
             {
+                await ConnectToWiFi();
+
                 // Registry changes needed to make this work
                 updatePoliciesKey.SetValue("WUServer", Settings.FQDN);
                 updatePoliciesKey.SetValue("WUStatusServer", Settings.FQDN);
@@ -180,7 +189,7 @@ namespace sgbono_windows_update
             progressRing.IsActive = false;
         }
 
-        private void RestartUpdateService()
+        private async void RestartUpdateService()
         {
             ProcessStartInfo stopWuauserv = new ProcessStartInfo()
             {
@@ -189,7 +198,7 @@ namespace sgbono_windows_update
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true
             };
-            Process.Start(stopWuauserv).WaitForExit();
+            await Task.Run(() => Process.Start(stopWuauserv).WaitForExit());
 
             ProcessStartInfo startWuauserv = new ProcessStartInfo()
             {
@@ -198,7 +207,127 @@ namespace sgbono_windows_update
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true
             };
-            Process.Start(startWuauserv).WaitForExit();
+            await Task.Run(() => Process.Start(startWuauserv).WaitForExit());
+        }
+
+        // Determines if device has successfully connected to Wi-Fi by pinging destination server
+        static async Task<bool> IsWiFiConnected()
+        {
+            try
+            {
+                Ping ping = new Ping();
+                PingReply reply = await ping.SendPingAsync(Settings.ServerName);
+
+                if (reply.Status == IPStatus.Success)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Connects to Wi-Fi using netsh
+        private async Task ConnectToWiFi()
+        {
+            await Task.Run(async () =>
+            {
+                bool networkDone = false;
+                while (networkDone == false)
+                {
+                    try
+                    {
+                        using (Process process = new Process())
+                        {
+                            ProcessStartInfo startInfo = new ProcessStartInfo
+                            {
+                                FileName = "netsh",
+                                RedirectStandardInput = true,
+                                RedirectStandardOutput = true,
+                                CreateNoWindow = true,
+                                UseShellExecute = false,
+                                RedirectStandardError = true
+                            };
+
+                            process.StartInfo = startInfo;
+                            process.Start();
+
+                            // Create temp directory and write WiFiTemplate.xml
+                            Directory.CreateDirectory(@"C:\SGBono\Windows 11 Debloated");
+                            File.WriteAllText(@"C:\SGBono\Windows 11 Debloated\WiFiTemplate.xml", Properties.Resources.WiFiTemplate);
+
+                            // Get reference values from Credentials.xml
+                            var ssid = Settings.SSID;
+                            var routerpassword = Settings.Password;
+                            var securityprotocol = Settings.SecurityProtocol;
+
+                            // Writes reference values to WiFiTemplate.xml
+                            XNamespace xmlNamespace = "http://www.microsoft.com/networking/WLAN/profile/v1";
+                            XDocument wifiTemplate = XDocument.Load(@"C:\SGBono\Windows 11 Debloated\WiFiTemplate.xml");
+                            wifiTemplate.Root.Element(xmlNamespace + "name").Value = ssid;
+                            wifiTemplate.Root.Element(xmlNamespace + "SSIDConfig").Element(xmlNamespace + "SSID").Element(xmlNamespace + "name").Value = ssid;
+                            wifiTemplate.Root.Element(xmlNamespace + "MSM").Element(xmlNamespace + "security").Element(xmlNamespace + "sharedKey").Element(xmlNamespace + "keyMaterial").Value = routerpassword;
+                            wifiTemplate.Root.Element(xmlNamespace + "MSM").Element(xmlNamespace + "security").Element(xmlNamespace + "authEncryption").Element(xmlNamespace + "authentication").Value = securityprotocol;
+                            wifiTemplate.Save(@"C:\SGBono\Windows 11 Debloated\WiFiTemplate.xml");
+
+                            // Connect to network by importing WiFiTemplate.xml
+                            process.StandardInput.WriteLine("wlan add profile filename=\"C:\\SGBono\\Windows 11 Debloated\\WiFiTemplate.xml\"");
+                            process.StandardInput.Close();
+
+                            ProcessStartInfo connectInfo = new ProcessStartInfo
+                            {
+                                FileName = "netsh",
+                                Arguments = $"wlan connect name=\"{ssid}\"",
+                                RedirectStandardOutput = true,
+                                RedirectStandardError = true,
+                                UseShellExecute = false,
+                                CreateNoWindow = true
+                            };
+
+                            Process connectProcess = new Process { StartInfo = connectInfo };
+                            connectProcess.Start();
+                            connectProcess.WaitForExit();
+
+                            int attempts = 0;
+                            while (!await IsWiFiConnected())
+                            {
+                                if (attempts == 11)
+                                {
+                                    throw new Exception("The network connection timed out.");
+                                }
+                                else
+                                {
+                                    await Task.Delay(500);
+                                    attempts++;
+                                }
+                            }
+
+                            process.WaitForExit();
+                            break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            iNKORE.UI.WPF.Modern.Controls.MessageBox.Show($"An error occurred while connecting to the Wi-Fi. {ex.Message} \n{ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                            connectButton.IsEnabled = true;
+                            connectButton.SetResourceReference(StyleProperty, "AccentButtonStyle");
+                            statusText.Content = "Using Windows Update servers";
+                            statusText.Foreground = Brushes.Red;
+                            reminderWarning.Visibility = Visibility.Collapsed;
+                            progressRing.IsActive = false;
+                        });
+                    }
+                }
+            });
         }
 
         private void win10UpgradeCheckbox_Toggled(object sender, RoutedEventArgs e)
